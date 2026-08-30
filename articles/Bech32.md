@@ -1,6 +1,6 @@
 # Bech32 as an Encoding/Error-Correction Scheme
 
-SegWit changed what could go _inside_ a transaction output; Bech32 changed how you _represent_ that output as a human-shareable address.
+SegWit modified what could go _inside_ a transaction output; Bech32 changed how you _represent_ that output as a human-shareable address.
 
 ## Why Bitcoin Needed a New Address Format (Base58's Weaknesses)
 
@@ -30,7 +30,7 @@ Bech32 is Bitcoin's native address format for SegWit outputs. It replaces the ol
 
 The BIP 173 checksum is specifically constructed to guarantee: 100% detection of any single substitution error (one character typo), 100% detection of any two substitution errors (2 character typo), and strong detection of longer burst errors
 
-`Burst errors that are confined to run of up to 4 consecutive characters is guaranteed to be caught, and detection remains good, though not guranteed beyond that`
+```Burst errors that are confined to run of up to 4 consecutive characters is guaranteed to be caught, and detection remains good, though not guranteed beyond that```
 
 Bech32 as deployed in Bitcoin is used primarily for **detection**, not automatic correction, wallets simply reject an invalid checksum and ask the user to re-check the address, rather than silently guessing the closest valid one.
 
