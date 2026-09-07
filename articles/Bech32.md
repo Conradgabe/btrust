@@ -51,10 +51,12 @@ def bech32_polymod(values):
 
 _Source: [sipa/bech32](https://github.com/sipa/bech32/blob/master/ref/python/segwit_addr.py)_
 
-### Bech32m (BIP 350), and the flaw that made it necessary
+### Bech32m (BIP 350)
 
 Bech32's checksum has one unexpected weakness, discovered after deployment: whenever the final character of an address is p, inserting or deleting any number of q characters immediately before it does not invalidate the checksum. The string changes length and still validates.
+
 This is a genuine flaw in a code that was chosen with enormous care. Roughly 160,000 candidate BCH codes were analysed, consuming more than ten years of aggregate computation time, and the character set was then tuned so that visually confusable characters differ by only a single bit. None of that analysis found it. It was found when someone tried to extend the format.
+
 **Segwit v0 was not at risk because** BIP 141 restricts version 0 witness programs to exactly two lengths: 20 bytes for P2WPKH and 32 bytes for P2WSH. A mutation that inserts or deletes characters changes the decoded length, so the address fails the length check even though the checksum passes. The protection came from a consensus rule written for entirely unrelated reasons, not from the encoding itself. It was luck rather than design.
 **Why Taproot was.*** Witness versions 1 and above permit variable-length programs, anywhere from 2 to 40 bytes. There is no length rule left to catch the mutation, so an attacker or an unlucky copy-paste could produce a valid-looking address that nobody controls, and any funds sent there would be permanently unspendable. So, Bech32m is identical to Bech32 in every respect: same 32-character alphabet, same human-readable part, same separator, same polymod function. One constant changes. Where Bech32 XORs the value 1 into the checksum at the end, Bech32m XORs 0x2bc830a3. A decoder tells the two apart by which constant the polymod returns, so a single code path can accept both.
 
