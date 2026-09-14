@@ -53,12 +53,24 @@ _Source: [sipa/bech32](https://github.com/sipa/bech32/blob/master/ref/python/seg
 
 ### Bech32m (BIP 350)
 
-Bech32's checksum has one unexpected weakness, discovered after deployment: whenever the final character of an address is p, inserting or deleting any number of q characters immediately before it does not invalidate the checksum. The string changes length and still validates.
+Bech32’s checksum has one unexpected weakness which was discovered after it was deployed. If an address ends in the letter p, you can insert or delete any numer of q characters right before that final p, and the checksum will still pass as valid, even though the address is now a different length and technically a different string.
 
-This is a genuine flaw in a code that was chosen with enormous care. Roughly 160,000 candidate BCH codes were analysed, consuming more than ten years of aggregate computation time, and the character set was then tuned so that visually confusable characters differ by only a single bit. None of that analysis found it. It was found when someone tried to extend the format.
+Bech32 uses this list of alphabet “qpzry9x8gf2tvdw0s3jn54khce6mua7l” and in this encoding q represents the value 0 and p represents the value 1. This numeric role is why this particular pair causes a problem, its not abitrary that these 2 letters are involved. It means that an attacker could take a legitimate address ending in “…p”, and insert a bunch of extra “q’s (0 in the encoding)” and produce a new, different-looking address that still passes checksum validation.
 
-**Segwit v0 was not at risk because** BIP 141 restricts version 0 witness programs to exactly two lengths: 20 bytes for P2WPKH and 32 bytes for P2WSH. A mutation that inserts or deletes characters changes the decoded length, so the address fails the length check even though the checksum passes. The protection came from a consensus rule written for entirely unrelated reasons, not from the encoding itself. It was luck rather than design.
-**Why Taproot was.*** Witness versions 1 and above permit variable-length programs, anywhere from 2 to 40 bytes. There is no length rule left to catch the mutation, so an attacker or an unlucky copy-paste could produce a valid-looking address that nobody controls, and any funds sent there would be permanently unspendable. So, Bech32m is identical to Bech32 in every respect: same 32-character alphabet, same human-readable part, same separator, same polymod function. One constant changes. Where Bech32 XORs the value 1 into the checksum at the end, Bech32m XORs 0x2bc830a3. A decoder tells the two apart by which constant the polymod returns, so a single code path can accept both.
+If a wallet or user isn’t careful, they might send funds to this altered address, believing it’s valid because the checksum check succeeds.
+
+Bech32’s checksum is based on a BCH code, its a type of polynomial checksum. Because ‘q’ encodes the value 0, inserting zero-value symbols at that specific position (right before a final ‘p’) doesn’t change the underlying polynomial evaluation in a way the checksum can detect. It’s a mathematical blind spot in how the checksum polynomial handles trailing zero-padding.
+
+This is a genuine flaw in a code that was chosen with enormous care. Roughly 160,000 candidate BCH codes were analysed, consuming more than ten years of aggregate computation time, and the character set was then tuned so that visually confusable characters differ by only a single bit. None of that analysis found this bug. It was only found when someone tried to extend the format.
+
+Even with all this, Segwit v0 was not at risk because BIP 141 restricts version 0 witness programs to exactly two lengths, 20 bytes for P2WPKH and 32 bytes for P2WSH. A mutation that inserts or deletes characters changes the decoded length, so the address fails the length check even though the checksum passes. This protection came from a consensus rule written for entirely unrelated reasons, not from the encoding itself. It was luck rather than design, lol.
+
+While, Taproot was vulnerable to this vulnerability. Since the witness versions 1 and above permit variable-length programs (anywhere from 2 to 40 bytes), there is no length rule left to catch the mutation, so an attacker or an unlucky copy-paste could produce a valid-looking address that nobody controls, and any funds sent there would be permanently unspendable.
+
+### Bech32 and Bech32m
+<img width="2397" height="1108" alt="bech32_vs_bech32m_table (1)" src="https://github.com/user-attachments/assets/fa760379-173e-43a1-9c18-efe1e2938920" />
+
+So, Bech32m is identical to Bech32 in every respect except in one constant. Where Bech32 XORs the value 1 into the checksum at the end, Bech32m XORs 0x2bc830a3. A decoder tells the two apart by which constant the polymod returns, so a single code path can accept both.
 
 ```
 BECH32M_CONST = 0x2bc830a3
@@ -66,9 +78,9 @@ def bech32m_verify_checksum(hrp, data):
     return bech32_polymod(bech32_hrp_expand(hrp) + data) == BECH32M_CONST
 ```
 
-BIP 350 assigns them by witness version, version 0 continues to use Bech32; version 1 and later use Bech32m. This is why a Taproot address and a native segwit v0 address look almost identical and yet are not interchangeable, and why wallets needed a second round of updates for Taproot after having already implemented Bech32
+BIP 350 ties the choice of checksum to the address’s witness version, version 0 addresses continues to use Bech32, while version 1 addresses and later addresses (including Taproot) must use Bech32m. This is why a Taproot address and a native segwit v0 address look almost identical and yet are not interchangeable, this also meant wallets that had already built support for Bech32 couldn’t just reuse that code for Taproot, they had to go back and add Bech32m support as a separate update.
 
 
 ## Conclusion
 
-SegWit and Bech32 solve two different problems that are easy to mix up. SegWit restructured what a transaction output looks like, separating witness data from the base transaction to fix malleability, enable the linear-time sighash, and unlock the block-weight discount while Bech32 restructured how that output gets written down, replacing Base58's ad hoc, its computationally awkward encoding, with a format grounded in formal coding theory, one that's cheaper to process, harder to misread, and mathematically guaranteed to catch the most common classes of human error.
+SegWit and Bech32 solve two different problems that are easy to conflate. SegWit changed what a transaction output looks like, moving witness data out of the base transaction to fix malleability, enable linear-time sighash calculation, and unlock the block-weight discount. Bech32, by contrast, changed how that output gets written down, replacing Base58’s ad hoc, computationally clunky encoding with a format built on formal coding theory, one that’s cheaper to process, harder to misread, and mathematically guaranteed to catch the most common human transcription errors..
