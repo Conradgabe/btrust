@@ -1,6 +1,6 @@
 # A Technical Deep Dive into Lightning's Multi-Hop Payments from the Terminal
 
-Lightning's approach to scaling Bitcoin was to move payments off-chain, settling back on-chain only periodically. This turns out to be fundamentally a balance-routing problem. While payment channels handle bilateral payments between directly connected peers, multi-hop payments turn isolated channels into a connected, routable network graph. By combining Hash Time-Locked Contracts (HTLCs) with Sphinx onion routing, Lightning enables trustless atomic transfers across multi-node paths while shielding the full payment path from any single intermediate relayer.
+Lightning's approach to scaling Bitcoin was to move payments off-chain and settle back on-chain only periodically. This turns out to be fundamentally a balance-routing problem. While payment channels handle bilateral payments between directly connected peers, multi-hop payments turn isolated channels into a connected, routable network graph. By combining Hash Time-Locked Contracts (HTLCs) with Sphinx onion routing, Lightning enables trustless atomic transfers across multi-node paths while shielding the full payment path from any single intermediate relayer.
 
 This deep dive tries to dissect the technical mechanics of multi-hop payments, from payment setup and route selection to onion construction and the cryptographic enforcement that makes the whole path settle atomically using the terminal.
 
@@ -25,7 +25,9 @@ Here is the anatomy of a BOLT11 invoice:
 lnbc1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl2pkx2ctnv5sxxmmwwd5kgetjypeh2ursdae8g6twvus8g6rfwvs8qun0dfjkxaq9qrsgq357wnc5r2ueh7ck6q93dj32dlqnls087fxdwk8qakdyafkq3yap9us6v52vjjsrvywa6rt52cm9r9zqt8r2t7mlcwspyetp5h2tztugp9lfyql
 ```
 
-![Anatomy of a BOLT11 Invoice](<img width="2727" height="1319" alt="bolt11-invoice-breakdown" src="https://github.com/user-attachments/assets/8be5d9c6-c25e-468b-9973-608f6e77c836" />)
+
+<img width="2727" height="1319" alt="bolt11-invoice-breakdown" src="https://github.com/user-attachments/assets/b4341688-dc2e-4fcd-8273-c4f3f3925ab8" />
+
 
 ### Working with the terminal
 
@@ -473,7 +475,9 @@ lnd@erin:/$
 You can confirm whether the channel is open or it 
 is pending via the terminal in Polars UI. To confirm via the terminal, run the "lncli pendingchannels" command to see the pending channels. The dotted lines in the image below mean that the channel to that node is still opening, while the full line means that a channel has been established (Alice to Carol). You would have to mine a couple more blocks for confirmation.
 
-![Polar channel opening status](<img width="413" height="182" alt="polar-channel-opening-status" src="https://github.com/user-attachments/assets/f615ed64-2b9b-4d22-807a-62feefd8e8b8" />)
+
+<img width="2727" height="1319" alt="polar-channel-opening-status" src="https://github.com/user-attachments/assets/f615ed64-2b9b-4d22-807a-62feefd8e8b8" />
+
 
 ## Route Selection
 
