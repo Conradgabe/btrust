@@ -1,4 +1,4 @@
-# A Technical Deep Dive into Lightning's Multi-Hop Payments from the Terminal
+# Understanding Lightning's Multi-Hop Payments from the Terminal
 
 Lightning's approach to scaling Bitcoin was to move payments off-chain and settle back on-chain only periodically. This turns out to be fundamentally a balance-routing problem. While payment channels handle bilateral payments between directly connected peers, multi-hop payments turn isolated channels into a connected, routable network graph. By combining Hash Time-Locked Contracts (HTLCs) with Sphinx onion routing, Lightning enables trustless atomic transfers across multi-node paths while shielding the full payment path from any single intermediate relayer.
 
