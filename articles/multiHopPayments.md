@@ -80,13 +80,13 @@ lnd@dave:/$ lncli addinvoice - amt 100000 -memo "multihop demo payment"
 lnd@dave:/$
 ```
 
-r_hash: This is H. The SHA256 hash of the preimage R that Dave generated. Every HTLC along the route will lock against it.
+- r_hash: This is H. The SHA256 hash of the preimage R that Dave generated. Every HTLC along the route will lock against it.
 
-payment_request: The Bech32-encoded full BOLT11 invoice string, starting with "lnbcrt"; "rt" confirms this was generated on regtest. Dave hands this over to Alice.
+- payment_request: The Bech32-encoded full BOLT11 invoice string, starting with "lnbcrt"; "rt" confirms this was generated on regtest. Dave hands this over to Alice.
 
-add_index: A simple sequential counter LND assigns to invoices as they're created on this node; this one is invoice #1.
+- add_index: A simple sequential counter LND assigns to invoices as they're created on this node; this one is invoice #1.
 
-payment_addr: This is the payment secret, a separate random 32-byte value (distinct from r_hash) that gets embedded in the invoice specifically to prevent a class of attack where a malicious intermediate node tries to guess/probe payment details by sending partial payment attempts. It's why modern invoices carry both a hash and a secret rather than just a hash alone.
+- payment_addr: This is the payment secret, a separate random 32-byte value (distinct from r_hash) that gets embedded in the invoice specifically to prevent a class of attack where a malicious intermediate node tries to guess/probe payment details by sending partial payment attempts. It's why modern invoices carry both a hash and a secret rather than just a hash alone.
 
 Next, to see the details of the invoice that was sent by Dave, copy the payment request string from the response, and then on Alice's terminal, decode it like so:
 
@@ -142,17 +142,17 @@ glmhmlav9dammhautd6st7jdgcaph5w6tcqmcny2h
 lnd@alice:/$
 ```
 
-destination: this is Dave's node public key; this is where the funds ultimately need to reach, and this is not the same as who Alice sends the packet to first; that would be Carol, the first hop.
+- destination: this is Dave's node public key; this is where the funds ultimately need to reach, and this is not the same as who Alice sends the packet to first; that would be Carol, the first hop.
 
-payment_hash: this is H, the same value from the r_hash.
+- payment_hash: this is H, the same value from the r_hash.
 
-num_satoshis/num_msat: the amount Dave is actually owed. Msats exist because Lightning supports sub-satoshi precision for fee calculation across hops.
+- num_satoshis/num_msat: the amount Dave is actually owed. Msats exist because Lightning supports sub-satoshi precision for fee calculation across hops.
 
-cltv_expiry: this is the final-hop timelock delta; it's the minimum number of blocks Dave requires before his HTLC can expire.
+- cltv_expiry: this is the final-hop timelock delta; it's the minimum number of blocks Dave requires before his HTLC can expire.
 
-features→route-blinding: this is a newer BOLT4 privacy feature that hides the final recipient's identity even further.
+- features→route-blinding: this is a newer BOLT4 privacy feature that hides the final recipient's identity even further.
 
-features→multi-path-payments: this confirms Dave's node can accept a single payment split across multiple routes (MPP)
+- features→multi-path-payments: this confirms Dave's node can accept a single payment split across multiple routes (MPP)
 
 Next, connect to the other nodes in the network and open channels to them. To do that, we need the URI, which includes the public key, host, and port of the node we want to connect to. Connecting to the other peers is only needed if the nodes were not previously connected. We need to get the URI of the nodes in the network
 
@@ -381,7 +381,7 @@ lnd@carol:/$lnd@carol:/$ lncli listchannels
 }
 ```
 
-The RPC error here, "peer 03... is not online" means that you are not yet connected to the node you want to open a channel with. So you have to connect to it, then open a channel.
+The RPC error here, "peer 03... is not online", means that you are not yet connected to the node you want to open a channel with. So you have to connect to it, then open a channel.
 
 Erin's Terminal:
 
@@ -472,8 +472,7 @@ lnd@erin:/$ lncli pendingchannels
 lnd@erin:/$
 ```
 
-You can confirm whether the channel is open or it 
-is pending via the terminal in Polars UI. To confirm via the terminal, run the "lncli pendingchannels" command to see the pending channels. The dotted lines in the image below mean that the channel to that node is still opening, while the full line means that a channel has been established (Alice to Carol). You would have to mine a couple more blocks for confirmation.
+You can confirm whether the channel is open or it is pending via the terminal in Polars UI. To confirm via the terminal, run the "lncli pendingchannels" command to see the pending channels. The dotted lines in the image below mean that the channel to that node is still opening, while the full line means that a channel has been established (Alice to Carol). You would have to mine a couple more blocks for confirmation.
 
 
 <img width="2727" height="1319" alt="polar-channel-opening-status" src="https://github.com/user-attachments/assets/f615ed64-2b9b-4d22-807a-62feefd8e8b8" />
@@ -568,11 +567,11 @@ lnd@alice:/$
 
 From the response, we can see the hop flow from Alice to Carol to Erin to Dave (based on their public key). One important field we can see from the response is amt_to_forward and the fee attached to the amount to forward. Carol receives a fee of 1 sat, Erin receives a fee of 1 sat as well, while Dave doesn't receive any fees because that is the destination node. The amt_to_forward reduces at each hop by the fee amount.
 
-total_fees: the entire 3-hop route costs Alice just 2 sats total(2200 msat, per total_fees_msat). The fees are small because regtest channels default to tiny fee rates, but the mechanism is identical to mainnet.
+- total_fees: the entire 3-hop route costs Alice just 2 sats total(2200 msat, per total_fees_msat). The fees are small because regtest channels default to tiny fee rates, but the mechanism is identical to mainnet.
 
-success_prob: This is LND's confidence estimate that this route will actually succeed. It's 1.0 here because this is Alice's own small test network with fully known channel states; on mainnet, this number is rarely exactly 1 since nodes can't see the others' real-time liquidity and rely on probabilistic estimates
+- success_prob: This is LND's confidence estimate that this route will actually succeed. It's 1.0 here because this is Alice's own small test network with fully known channel states; on mainnet, this number is rarely exactly 1 since nodes can't see the others' real-time liquidity and rely on probabilistic estimates
 
-total_time_lock and per-hop expiry values: They show the timelock getting pushed further into the future, giving each intermediary a safety margin to claim their HTLC before their own upstream obligation expires.
+- total_time_lock and per-hop expiry values: They show the timelock getting pushed further into the future, giving each intermediary a safety margin to claim their HTLC before their own upstream obligation expires.
 
 ## Onion Construction
 
@@ -651,7 +650,7 @@ NKdIoHY8zhHMKWp/GZEogBJWw242qVUqL+ChAB1n7fwRrZ0LeVdgMc...(truncated)
 
 Source @ lightning-multi-hop-demo
 
-This is a simplified implementation illustration, not BOLT 4 Sphinx. Real onion packets derive per-hop keys via ECDH, are padded to a fixed 1300 bytes, and carry an HMAC chain. See BOLT #4: Onion Routing Protocol as reference.
+This is a simplified implementation illustration, not BOLT 4 Sphinx. Real onion packets derive per-hop keys via ECDH, are padded to a fixed 1300 bytes, and carry an HMAC chain. See BOLT #4: Onion Routing Protocol as a reference.
 
 ## Cryptographic Enforcement
 
@@ -729,7 +728,7 @@ lnd@carol:/$ lncli listchannels
 }
 ```
 
-// The 2 channels shown here are this node's connection to Alice and Erin
+// The 2 channels shown here are this node's connections to Alice and Erin
 
 Erin's Terminal:
 
@@ -774,7 +773,7 @@ lnd@erin:/$ lncli listchannels
 }
 ```
 
-// The 2 channels shown here are this node's connection to Carol and Dave
+// The 2 channels shown here are this node's connections to Carol and Dave
 
 Dave's Terminal:
 
@@ -976,7 +975,7 @@ lnd@carol:/$ lncli listchannels
 }
 ```
 
-// You can see and compare the balance amount has changed
+// You can see and compare that the balance amount has changed
 
 Erin's Terminal:
 
@@ -1004,7 +1003,7 @@ lnd@erin:/$ lncli listchannels
 }
 ```
 
-// You can see and compare the balance amount have changed
+// You can see and compare that the balance amount has changed
 
 Dave's Terminal:
 
